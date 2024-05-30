@@ -1,4 +1,10 @@
 {
   "name": "was-client",
-  "packageManager": "yarn@4.1.1"
+  "version": "1.0.0",
+  "author": "shuzhouliu",
+  "license": "MPL-2.0",
+  "packageManager": "yarn@4.1.1",
+  "devDependencies": {
+    "electron": "^30.0.9"
+  }
 }
