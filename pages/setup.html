@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>初始化 WAS</title>
+	<link rel="stylesheet" href="dist/semantic.min.css">
+</head>
+
+<body>
+	<div class="ui container">
+		<br>
+		<h3>初始化 WAS</h3>
+		<div class="ui info message">
+			<b>准备事项：</b>请您准备好提供给您的 WAS 配置代码，然后点击下面的按钮完成配置。<br>
+			<div class="ui styled accordion">
+				<div class="title">
+					<i class="dropdown icon"></i>
+					配置代码是什么？
+				</div>
+				<div class="content">
+					在 WAS Server 初始配置时，系统会提供配置代码以供用户连接。<br>
+					配置代码可能类似这样：<br>
+					<pre id="code"></pre>
+					正确的配置代码都具有如下特征：字符只可能出现大写字母、数字和占位符（<code id="zwf"></code>）；开头两个字符是 <code>CS</code>；长度为 44 位。
+				</div>
+			</div><br>
+		</div>
+		<div class="ui segment">
+			<div class="ui form">
+				<div class="field">
+					<label>配置代码</label>
+					<input type="text" id="input" autocomplete="off" autocorrect="off" spellcheck="false"
+						placeholder="请输入配置代码">
+				</div>
+			</div><br>
+			<div class="ui green button" id="submit">确认</div>
+		</div>
+	</div>
+	<script src="dist/jquery-3.7.1.min.js"></script>
+	<script src="dist/semantic.min.js"></script>
+	<script>
+		$('.ui.accordion').accordion();
+		$('#code').text("CSCHN1C0A803161F90135296F31105776<<<<<<<<<50");
+		/*
+			explanation:
+			1-2 (CS) - Code Type: Client Setup
+			3-5 (CHN) - Country Code
+			6 (1) - Whether a password is required
+			7-14 (C0A80316) - IP Address: 192.168.3.22
+			15-18 (1F90) - Port: 8080
+			19-25 (135296F) - Expiry Date: 20261231
+			26-43 (31105776) - OCT Check Code: 31105776
+				for every digit, let its index be i (starting from 1), let sum = sum{i=1..25} (i*get(str[i])), then sum *= 4727 -> OCT Check Code
+				for digits not used, use < to fill in the rest
+			43-44 (50) - Double Check Code: 50
+				OCT Check Code (in DEC) * 18827 mod 256 -> HEX Check Code
+		*/
+		$('#zwf').text('<');
+	</script>
+</body>
+
+</html>
