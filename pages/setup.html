@@ -13,7 +13,7 @@
 		<br>
 		<h3>初始化 WAS</h3>
 		<div class="ui info message">
-			<b>准备事项：</b>请您准备好提供给您的 WAS 配置代码，然后点击下面的按钮完成配置。<br>
+			<b>准备事项：</b>请您准备好提供给您的 WAS 配置代码，然后点击下面的按钮完成配置。<br><br>
 			<div class="ui styled accordion">
 				<div class="title">
 					<i class="dropdown icon"></i>
@@ -23,26 +23,27 @@
 					在 WAS Server 初始配置时，系统会提供配置代码以供用户连接。<br>
 					配置代码可能类似这样：<br>
 					<pre id="code"></pre>
-					正确的配置代码都具有如下特征：字符只可能出现大写字母、数字和占位符（<code id="zwf"></code>）；开头两个字符是 <code>CS</code>；长度为 44 位。
+					正确的配置代码都具有如下特征：字符只可能出现大写字母、数字和占位符（<code id="zwf"></code>）；开头两个字符是 <code>CS</code>；长度为 44 位；若您有校验需求，可以使用正则表达式 <code id="reg"></code>。
 				</div>
 			</div><br>
 		</div>
 		<div class="ui segment">
-			<div class="ui form">
+			<div class="ui form" id="form">
 				<div class="field">
 					<label>配置代码</label>
 					<input type="text" id="input" autocomplete="off" autocorrect="off" spellcheck="false"
 						placeholder="请输入配置代码">
 				</div>
+				<div class="ui error message"></div>
+				<button class="ui green button" id="submit" type="submit">确认</button>
 			</div><br>
-			<div class="ui green button" id="submit">确认</div>
 		</div>
 	</div>
 	<script src="dist/jquery-3.7.1.min.js"></script>
 	<script src="dist/semantic.min.js"></script>
 	<script>
 		$('.ui.accordion').accordion();
-		$('#code').text("CSCHN1C0A803161F90135296F31105776<<<<<<<<<50");
+		$('#code').text("CSCHN1C0A803161F90135296F142305200472<<<<<C8\nCSD<<1C0A803161F90135296F14451366521224<<<E0");
 		/*
 			explanation:
 			1-2 (CS) - Code Type: Client Setup
@@ -52,12 +53,85 @@
 			15-18 (1F90) - Port: 8080
 			19-25 (135296F) - Expiry Date: 20261231
 			26-43 (31105776) - OCT Check Code: 31105776
-				for every digit, let its index be i (starting from 1), let sum = sum{i=1..25} (i*get(str[i])), then sum *= 4727 -> OCT Check Code
+				for every digit, let its index be i (starting from 1), let sum = sum{i=1..25} (i*get(str[i])), then sum *= 9472773 -> OCT Check Code
 				for digits not used, use < to fill in the rest
 			43-44 (50) - Double Check Code: 50
 				OCT Check Code (in DEC) * 18827 mod 256 -> HEX Check Code
 		*/
 		$('#zwf').text('<');
+		$('#reg').text("^CS([A-Z]{3}|D<<)[0-1][0-9A-F]{8}[0-9A-F]{4}[0-9A-F]{7}[0-7]{1,18}<{0,18}[0-9A-F]{2}$")
+		// form validation
+		function Mvalue(x) {
+			if (x >= 'A' && x <= 'Z') {
+				// A->1, B->2, ...
+				return x.charCodeAt(0) - 64;
+			} else if (x == '<') {
+				return 9997;
+			} else return x;
+		}
+
+		$.fn.form.settings.rules.firstCheck = function(value) {
+			let sum = 0;
+			for (let i = 0; i < 25; i++) {
+				sum += Mvalue(value.charAt(i)) * (i+1);
+			}
+			sum *= 9472773;
+			// make sum octal number
+			let octal = sum.toString(8);
+			let rst = 43-26 - octal.length;
+			for (let i = 0; i < rst; i++) {
+				octal += '<';
+			}
+			console.log(value, octal, value.substring(25, 42));
+			return octal == value.substring(25, 42);
+		}
+
+		$.fn.form.settings.rules.secondCheck = function(value) {
+			let sum = 0;
+			for (let i = 0; i < 25; i++) {
+				sum += Mvalue(value.charAt(i)) * (i+1);
+			}
+			sum *= 9472773;
+			// make sum octal number
+			let octal = sum.toString(8);
+			// turn string octal into decimal
+			octal = parseInt(octal, 10);
+			let hex = ((octal * 18827) % 256).toString(16).toUpperCase();
+			console.log(value, hex, value.substring(42, 44));
+			return hex == value.substring(42, 44);
+		}
+		$('#form').form({
+			fields: {
+				input: {
+					identifier: 'input',
+					rules: [{
+						type: 'empty',
+						prompt: '配置代码为空'
+					}, {
+						type: 'exactLength[44]',
+						prompt: '配置代码长度应为 44 位'
+					}, {
+						type: 'regExp',
+						value: /^CS([A-Z]{3}|D<<)[0-1][0-9A-F]{8}[0-9A-F]{4}[0-9A-F]{7}[0-7]{1,18}<{0,18}[0-9A-F]{2}$/,
+						prompt: '未通过正则表达式测试，格式错误'
+					}, {
+						type: 'firstCheck',
+						prompt: '校验码一区错误'
+					}, {
+						type: 'secondCheck',
+						prompt: '校验码二区错误'
+					}]
+				}
+			},
+		});
+		// make forms work
+		$('#submit').click(() => {
+			$('#form').form('validate form');
+			if ($('#form').form('is valid')) {
+				// submit form
+				$('#form').form('submit');
+			}
+		});
 	</script>
 </body>
 
