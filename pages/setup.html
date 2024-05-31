@@ -100,6 +100,11 @@
 			console.log(value, hex, value.substring(42, 44));
 			return hex == value.substring(42, 44);
 		}
+
+		$.fn.form.settings.rules.csCheck = function(value) {
+			return value.substring(0, 2) == 'CS';
+		}
+
 		$('#form').form({
 			fields: {
 				input: {
@@ -110,6 +115,9 @@
 					}, {
 						type: 'exactLength[44]',
 						prompt: '配置代码长度应为 44 位'
+					}, {
+						type: 'csCheck',
+						prompt: '初始化 WAS 的配置代码开头必须为 CS'
 					}, {
 						type: 'regExp',
 						value: /^CS([A-Z]{3}|D<<)[0-1][0-9A-F]{8}[0-9A-F]{4}[0-9A-F]{7}[0-7]{1,18}<{0,18}[0-9A-F]{2}$/,
@@ -124,12 +132,13 @@
 				}
 			},
 		});
-		// make forms work
-		$('#submit').click(() => {
+		
+		$('#submit').on('click', function() {
 			$('#form').form('validate form');
+			let value = $('#input').val();
 			if ($('#form').form('is valid')) {
-				// submit form
-				$('#form').form('submit');
+				localStorage.setItem('config', value);
+				window.location.href = 'connect.html';
 			}
 		});
 	</script>
